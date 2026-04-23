@@ -29,8 +29,7 @@
         case 'GET':
 
             // echo "Aqui está as ações do GET";
-              echo json_encode($usuarios);
-
+              echo json_encode($usuarios, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             break;
 
         case 'POST':
@@ -38,22 +37,38 @@
             // echo "Aqui está as ações do POST";
             $dados = json_decode(file_get_contents('php://input'), true);
             // print_r($dados);
+
+            if (!isset($dados["id"]) || !isset($dados["nome"]) || !isset($dados["email"])){
+                http_response_code(400);
+                echo json_enconde(["erro" => " Dados incompletos. "], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+
             $novoUsuario = [
                 "id" => $dados["id"],
                 "nome" => $dados["nome"],
                 "email" => $dados["email"]
             ];
 
-            array_push($usuarios,$novoUsuario); //pega um vetor e adiciona os novos dados no vetor original
-            echo json_encode('Usuário inserido com sucesso');
-            print_r($usuarios);
+
+            $usuarios[] = $novoUsuario;
+
+            file_put_contents($arquivo, json_encode($usuarios, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            echo json_encode(["mensagem" => "Usuário inserido com sucesso", "usuarios" => $usuarios], JSON_UNESCAPED_UNICODE);
+
+            // array_push($usuarios,$novoUsuario); //pega um vetor e adiciona os novos dados no vetor original
+            // echo json_encode('Usuário inserido com sucesso');
+            // print_r($usuarios);
 
             break;
         
         default:
 
-            echo "Método não encontrado";  
+            // echo "Método não encontrado";  
 
+            http_response_code(405); 
+            echo json_encode(["erro" => "Método não permitido!"], JSON_UNESCAPED_UNICODE);
             break;
     }
 
